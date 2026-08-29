@@ -1,0 +1,40 @@
+# ── Python / Backend ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.env
+*.env
+venv/
+env/
+ENV/
+.venv/
+
+# ── Node / Frontend ───────────────────────────────────────────────
+node_modules/
+dist/
+.cache/
+*.local
+
+# ── IDE / OS ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Alembic ───────────────────────────────────────────────────────
+# Keep migrations folder but ignore pycache inside
+backend/alembic/__pycache__/
+
+# ── Secrets ───────────────────────────────────────────────────────
+*.pem
+*.key
+.env.local
+.env.production
