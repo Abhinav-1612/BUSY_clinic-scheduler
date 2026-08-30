@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '../api/client'
-import { Spinner, ErrorState, EmptyState } from '../components/ui'
+import { Spinner, EmptyState } from '../components/ui'
 
 export default function ProvidersPage() {
   const { data: providers, isLoading, error } = useQuery({
@@ -9,7 +9,7 @@ export default function ProvidersPage() {
   })
 
   if (isLoading) return <Spinner />
-  if (error) return <ErrorState error={error} />
+  if (error) return <div>Error loading providers.</div>
   if (!providers?.length) return <EmptyState title="No providers found" />
 
   return (
