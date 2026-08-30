@@ -1,10 +1,11 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useQuery } from '@tanstack/react-query'
 import api from '../api/client'
 import {
   LayoutDashboard, Calendar, Clock, Users,
-  BarChart2, Bell, LogOut, Layers
+  Bell, LogOut, Layers, Sun, Moon
 } from 'lucide-react'
 
 function AlertBadge() {
@@ -20,6 +21,7 @@ function AlertBadge() {
 
 export default function Sidebar() {
   const { user, logout, isFrontDesk } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -89,14 +91,28 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-        <button
-          className="btn btn-ghost btn-sm w-full"
-          style={{ justifyContent: 'center' }}
-          onClick={handleLogout}
-          id="logout-btn"
-        >
-          <LogOut size={14} /> Sign out
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ flex: 1, justifyContent: 'center', gap: 6 }}
+            onClick={toggleTheme}
+            id="theme-toggle-btn"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark'
+              ? <><Sun size={14} /> Light</>
+              : <><Moon size={14} /> Dark</>
+            }
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ flex: 1, justifyContent: 'center' }}
+            onClick={handleLogout}
+            id="logout-btn"
+          >
+            <LogOut size={14} /> Sign out
+          </button>
+        </div>
       </div>
     </aside>
   )
