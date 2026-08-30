@@ -7,6 +7,7 @@ import AppointmentsPage from './pages/AppointmentsPage'
 import SlotsPage from './pages/SlotsPage'
 import BulkPage from './pages/BulkPage'
 import AlertsPage from './pages/AlertsPage'
+import ProvidersPage from './pages/ProvidersPage'
 
 function ProtectedRoute({ children, frontDeskOnly = false }) {
   const { user, isFrontDesk } = useAuth()
@@ -57,6 +58,12 @@ export default function App() {
       <Route path="/bulk" element={
         <ProtectedRoute frontDeskOnly>
           <AppLayout><BulkPage /></AppLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/providers" element={
+        <ProtectedRoute frontDeskOnly>
+          <AppLayout><ProvidersPage /></AppLayout>
         </ProtectedRoute>
       } />
 
