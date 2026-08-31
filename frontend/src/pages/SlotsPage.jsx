@@ -118,7 +118,9 @@ export default function SlotsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Availability Slots</h1>
-          <p className="page-subtitle">{slots?.length || 0} slots</p>
+          <p className="page-subtitle">
+            {slots?.length === 100 && !filterDate ? 'Showing first 100 slots (use date filter for more)' : `${slots?.length || 0} slots`}
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={handleExport} id="export-csv-btn">

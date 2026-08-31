@@ -75,6 +75,10 @@ def list_slots(
     if not include_archived:
         query = query.where(AppointmentSlot.is_archived == False)
 
+    # Prevent massive payloads on initial load (2,700+ slots)
+    if not slot_date:
+        query = query.limit(100)
+
     slots = session.exec(query.order_by(AppointmentSlot.slot_date, AppointmentSlot.start_time)).all()
     return [_slot_to_dict(s) for s in slots]
 
