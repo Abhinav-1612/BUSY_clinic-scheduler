@@ -19,9 +19,16 @@
 | Role | Email | Password |
 |------|-------|----------|
 | Front Desk | `frontdesk@clinic.demo` | `Demo1234!` |
-| Provider (Dr. Smith) | `dr.smith@clinic.demo` | `Demo1234!` |
-| Provider (Dr. Jones) | `dr.jones@clinic.demo` | `Demo1234!` |
-| Provider (Dr. Miller) | `dr.miller@clinic.demo` | `Demo1234!` |
+| Physical Therapy | `dr.smith@clinic.demo` | `Demo1234!` |
+| Dental | `dr.jones@clinic.demo` | `Demo1234!` |
+| Physical Therapy | `dr.miller@clinic.demo` | `Demo1234!` |
+| Cardiology | `dr.patel@clinic.demo` | `Demo1234!` |
+| Orthopedics | `dr.nguyen@clinic.demo` | `Demo1234!` |
+| General Medicine | `dr.okafor@clinic.demo` | `Demo1234!` |
+| Dermatology | `dr.russo@clinic.demo` | `Demo1234!` |
+| Pediatrics | `dr.kim@clinic.demo` | `Demo1234!` |
+| Neurology | `dr.hassan@clinic.demo` | `Demo1234!` |
+| Sports Medicine | `dr.roberts@clinic.demo` | `Demo1234!` |
 
 **What to check with each role:**
 - **Front Desk** → lands on Dashboard (charts, headline numbers), can see Appointments list with filters, Slots management, Bulk Generator, Alerts panel
