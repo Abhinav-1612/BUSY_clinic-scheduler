@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Sidebar from './components/Sidebar'
@@ -17,9 +18,37 @@ function ProtectedRoute({ children, frontDeskOnly = false }) {
 }
 
 function AppLayout({ children }) {
+  const [collapsed, setCollapsed] = useState(false)
+
   return (
-    <div className="app-layout">
+    <div className={`app-layout${collapsed ? ' sidebar-collapsed' : ''}`}>
       <Sidebar />
+
+      {/* Floating toggle tab — sticks to edge of sidebar */}
+      <button
+        className="sidebar-toggle-btn"
+        onClick={() => setCollapsed(c => !c)}
+        title={collapsed ? 'Open sidebar' : 'Close sidebar'}
+        id="sidebar-toggle-btn"
+        aria-label="Toggle sidebar"
+      >
+        <svg
+          width="12" height="12" viewBox="0 0 12 12" fill="none"
+          style={{
+            transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.32s ease',
+          }}
+        >
+          <path
+            d="M8 1L3 6l5 5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
       <div className="main-content">
         {children}
       </div>
