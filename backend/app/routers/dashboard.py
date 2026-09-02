@@ -80,18 +80,31 @@ def get_dashboard(
         for status, count in status_breakdown
     ]
 
-    # ── 3. Breakdown by Provider ─────────────────────────────────────────────
+    # ── 3. Breakdown by Provider (All Time & Today) ──────────────────────────
 
-    provider_breakdown = session.exec(
-        select(Provider.display_name, func.count(Appointment.id))
+    provider_breakdown_all = session.exec(
+        select(Provider.id, Provider.display_name, func.count(Appointment.id))
         .join(AppointmentSlot, AppointmentSlot.provider_id == Provider.id)
         .join(Appointment, Appointment.slot_id == AppointmentSlot.id)
-        .group_by(Provider.display_name)
+        .group_by(Provider.id, Provider.display_name)
     ).all()
 
-    provider_data = [
-        {"provider": name, "count": count}
-        for name, count in provider_breakdown
+    provider_data_all = [
+        {"provider_id": pid, "provider": name, "count": count}
+        for pid, name, count in provider_breakdown_all
+    ]
+
+    provider_breakdown_today = session.exec(
+        select(Provider.id, Provider.display_name, func.count(Appointment.id))
+        .join(AppointmentSlot, AppointmentSlot.provider_id == Provider.id)
+        .join(Appointment, Appointment.slot_id == AppointmentSlot.id)
+        .where(AppointmentSlot.slot_date == today)
+        .group_by(Provider.id, Provider.display_name)
+    ).all()
+
+    provider_data_today = [
+        {"provider_id": pid, "provider": name, "count": count}
+        for pid, name, count in provider_breakdown_today
     ]
 
     # ── 4. No-Show Rate Per Week (last 8 weeks) ───────────────────────────────
@@ -146,6 +159,7 @@ def get_dashboard(
             "confirmed_upcoming": confirmed_upcoming,
         },
         "by_status": status_data,
-        "by_provider": provider_data,
+        "by_provider": provider_data_all,
+        "by_provider_today": provider_data_today,
         "no_show_trend": weekly_data,
     }

@@ -34,19 +34,19 @@ function getStatParams(key) {
   })()
 
   switch (key) {
-    case 'today':      return { date_from: today, date_to: today, page_size: 100 }
+    case 'today': return { date_from: today, date_to: today, page_size: 100 }
     case 'checked_in': return { date_from: today, date_to: today, status: 'checked_in', page_size: 100 }
-    case 'no_show':    return { date_from: weekStart, date_to: weekEnd, status: 'no_show', page_size: 100 }
-    case 'confirmed':  return { date_from: today, status: 'confirmed', page_size: 100 }
-    default:           return {}
+    case 'no_show': return { date_from: weekStart, date_to: weekEnd, status: 'no_show', page_size: 100 }
+    case 'confirmed': return { date_from: today, status: 'confirmed', page_size: 100 }
+    default: return {}
   }
 }
 
 const STAT_TITLES = {
-  today:      "Today's Appointments",
+  today: "Today's Appointments",
   checked_in: 'Currently Checked In',
-  no_show:    'No-Shows This Week',
-  confirmed:  'Confirmed Upcoming',
+  no_show: 'No-Shows This Week',
+  confirmed: 'Confirmed Upcoming',
 }
 
 // ── Stat Detail Modal ─────────────────────────────────────────────────────────
@@ -126,9 +126,94 @@ function StatDetailModal({ statKey, onClose }) {
   )
 }
 
+// ── Provider Detail Modal ─────────────────────────────────────────────────────
+function ProviderDetailModal({ provider, isToday, onClose }) {
+  const [selectedApptId, setSelectedApptId] = useState(null)
+
+  // Use the same GET /api/appointments/ endpoint, filtering by provider_id
+  // and optionally by date.
+  const params = { provider_id: provider.provider_id }
+  if (isToday) {
+    const todayStr = new Date().toISOString().split('T')[0]
+    params.date_from = todayStr
+    params.date_to = todayStr
+  }
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['provider-detail', provider.provider_id, isToday],
+    queryFn: () => api.get('/api/appointments/', { params }).then(r => r.data),
+  })
+
+  const appointments = data?.data || []
+
+  return (
+    <>
+      <Modal title={`Appointments for ${provider.provider} ${isToday ? '(Today)' : ''}`} onClose={onClose} size="modal-lg">
+        <div className="modal-body" style={{ padding: 0 }}>
+          {isLoading ? (
+            <div style={{ padding: 40, textAlign: 'center' }}><Spinner /></div>
+          ) : appointments.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+              No appointments found.
+            </div>
+          ) : (
+            <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date / Time</th>
+                    <th>Patient</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr
+                      key={a.id}
+                      onClick={() => setSelectedApptId(a.id)}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to open full detail"
+                    >
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {formatDate(a.slot?.date)}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                          {formatTime(a.slot?.start_time)}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{a.patient_name}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{a.patient_email}</div>
+                      </td>
+                      <td><StatusBadge status={a.status} /></td>
+                      <td style={{ color: 'var(--text-muted)' }}>{a.slot?.duration_minutes} min</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Full appointment detail — stacks on top of this modal */}
+      {selectedApptId && (
+        <AppointmentModal
+          appointmentId={selectedApptId}
+          onClose={() => setSelectedApptId(null)}
+        />
+      )}
+    </>
+  )
+}
+
 // ── Dashboard Page ────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeStatKey, setActiveStatKey] = useState(null)
+  const [showProviderToday, setShowProviderToday] = useState(false)
+  const [activeProvider, setActiveProvider] = useState(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -139,7 +224,8 @@ export default function DashboardPage() {
   if (isLoading) return <div className="page-body"><Spinner /></div>
   if (!data) return <div className="page-body"><EmptyState title="Could not load dashboard" /></div>
 
-  const { headline, by_status, by_provider, no_show_trend } = data
+  const { headline, by_status, by_provider, by_provider_today, no_show_trend } = data
+  const providerDataToUse = showProviderToday ? by_provider_today : by_provider
 
   const statCards = [
     {
@@ -259,7 +345,7 @@ export default function DashboardPage() {
                 cx="50%" cy="50%"
                 outerRadius={80}
                 label={({ status, percent }) =>
-                  percent > 0.04 ? `${status.replace('_',' ')} ${(percent * 100).toFixed(0)}%` : ''
+                  percent > 0.04 ? `${status.replace('_', ' ')} ${(percent * 100).toFixed(0)}%` : ''
                 }
                 labelLine={false}
               >
@@ -278,21 +364,41 @@ export default function DashboardPage() {
 
       {/* Provider Breakdown */}
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 className="card-title">Appointments by Provider</h3>
+          <button
+            className={`btn btn-sm ${showProviderToday ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setShowProviderToday(!showProviderToday)}
+          >
+            Today Only
+          </button>
         </div>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={by_provider} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="provider" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-            <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-            <Tooltip
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8 }}
-              labelStyle={{ color: 'var(--text-primary)' }}
-            />
-            <Bar dataKey="count" fill="var(--accent)" radius={[4, 4, 0, 0]} name="Appointments" />
-          </BarChart>
-        </ResponsiveContainer>
+        {providerDataToUse.length === 0 ? (
+          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+            No appointments found
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={providerDataToUse} margin={{ left: -20, right: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="provider" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+              <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8 }}
+                labelStyle={{ color: 'var(--text-primary)' }}
+                cursor={{ fill: 'var(--bg-base)', opacity: 0.4 }}
+              />
+              <Bar 
+                dataKey="count" 
+                fill="var(--accent)" 
+                radius={[4, 4, 0, 0]} 
+                name="Appointments"
+                onClick={(data) => setActiveProvider(data)}
+                style={{ cursor: 'pointer' }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* No-Show detail table */}
@@ -338,6 +444,14 @@ export default function DashboardPage() {
         <StatDetailModal
           statKey={activeStatKey}
           onClose={() => setActiveStatKey(null)}
+        />
+      )}
+
+      {activeProvider && (
+        <ProviderDetailModal 
+          provider={activeProvider.payload} 
+          isToday={showProviderToday} 
+          onClose={() => setActiveProvider(null)} 
         />
       )}
     </div>
