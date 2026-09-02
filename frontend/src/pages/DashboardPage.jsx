@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '../api/client'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, CartesianGrid, Cell, PieChart, Pie, Legend
+  Tooltip, ResponsiveContainer, CartesianGrid, Cell, PieChart, Pie
 } from 'recharts'
-import { Spinner, EmptyState } from '../components/ui'
+import { Spinner, EmptyState, Modal, StatusBadge, formatDate, formatTime } from '../components/ui'
 import { Calendar, UserCheck, AlertTriangle, CheckCircle } from 'lucide-react'
+import AppointmentModal from '../components/AppointmentModal'
 
 const STATUS_COLORS = {
   requested: '#fbbf24',
@@ -16,7 +18,118 @@ const STATUS_COLORS = {
   cancelled: '#4e5a72',
 }
 
+// ── Stat card drill-down config ───────────────────────────────────────────────
+// Each key maps to the API params needed to fetch the relevant appointments
+function getStatParams(key) {
+  const today = new Date().toISOString().split('T')[0]
+  const weekStart = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() - d.getDay() + 1) // Monday
+    return d.toISOString().split('T')[0]
+  })()
+  const weekEnd = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() - d.getDay() + 7) // Sunday
+    return d.toISOString().split('T')[0]
+  })()
+
+  switch (key) {
+    case 'today':      return { date_from: today, date_to: today, page_size: 100 }
+    case 'checked_in': return { date_from: today, date_to: today, status: 'checked_in', page_size: 100 }
+    case 'no_show':    return { date_from: weekStart, date_to: weekEnd, status: 'no_show', page_size: 100 }
+    case 'confirmed':  return { date_from: today, status: 'confirmed', page_size: 100 }
+    default:           return {}
+  }
+}
+
+const STAT_TITLES = {
+  today:      "Today's Appointments",
+  checked_in: 'Currently Checked In',
+  no_show:    'No-Shows This Week',
+  confirmed:  'Confirmed Upcoming',
+}
+
+// ── Stat Detail Modal ─────────────────────────────────────────────────────────
+function StatDetailModal({ statKey, onClose }) {
+  const params = getStatParams(statKey)
+  const [selectedApptId, setSelectedApptId] = useState(null)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['stat-detail', statKey],
+    queryFn: () => api.get('/api/appointments/', { params }).then(r => r.data),
+  })
+
+  const appointments = data?.data || []
+
+  return (
+    <>
+      <Modal title={STAT_TITLES[statKey]} onClose={onClose} size="modal-lg">
+        <div className="modal-body" style={{ padding: 0 }}>
+          {isLoading ? (
+            <div style={{ padding: 40, textAlign: 'center' }}><Spinner /></div>
+          ) : appointments.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+              No appointments found for this category.
+            </div>
+          ) : (
+            <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date / Time</th>
+                    <th>Patient</th>
+                    <th>Provider</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr
+                      key={a.id}
+                      onClick={() => setSelectedApptId(a.id)}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to open full detail"
+                    >
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {formatDate(a.slot?.date)}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                          {formatTime(a.slot?.start_time)}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{a.patient_name}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{a.patient_email}</div>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{a.slot?.provider_name || '—'}</td>
+                      <td><StatusBadge status={a.status} /></td>
+                      <td style={{ color: 'var(--text-muted)' }}>{a.slot?.duration_minutes} min</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Full appointment detail — stacks on top of this modal */}
+      {selectedApptId && (
+        <AppointmentModal
+          appointmentId={selectedApptId}
+          onClose={() => setSelectedApptId(null)}
+        />
+      )}
+    </>
+  )
+}
+
+// ── Dashboard Page ────────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const [activeStatKey, setActiveStatKey] = useState(null)
+
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api.get('/api/dashboard/').then(r => r.data),
@@ -28,6 +141,41 @@ export default function DashboardPage() {
 
   const { headline, by_status, by_provider, no_show_trend } = data
 
+  const statCards = [
+    {
+      key: 'today',
+      icon: <Calendar size={20} />,
+      iconClass: 'blue',
+      value: headline.appointments_today,
+      label: 'Appointments Today',
+      hint: 'Click to view',
+    },
+    {
+      key: 'checked_in',
+      icon: <UserCheck size={20} />,
+      iconClass: 'green',
+      value: headline.checked_in_now,
+      label: 'Checked In Now',
+      hint: 'Click to view',
+    },
+    {
+      key: 'no_show',
+      icon: <AlertTriangle size={20} />,
+      iconClass: 'red',
+      value: headline.no_shows_this_week,
+      label: 'No-Shows This Week',
+      hint: 'Click to view',
+    },
+    {
+      key: 'confirmed',
+      icon: <CheckCircle size={20} />,
+      iconClass: 'yellow',
+      value: headline.confirmed_upcoming,
+      label: 'Confirmed Upcoming',
+      hint: 'Click to view',
+    },
+  ]
+
   return (
     <div className="page-body">
       <div className="page-header">
@@ -37,36 +185,31 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Headline Numbers */}
+      {/* Headline Numbers — all clickable */}
       <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-icon blue"><Calendar size={20} /></div>
-          <div>
-            <div className="stat-value">{headline.appointments_today}</div>
-            <div className="stat-label">Appointments Today</div>
+        {statCards.map(card => (
+          <div
+            key={card.key}
+            className="stat-card stat-card-clickable"
+            onClick={() => setActiveStatKey(card.key)}
+            title={`Click to see ${card.label}`}
+            id={`stat-card-${card.key}`}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className={`stat-icon ${card.iconClass}`}>{card.icon}</div>
+            <div style={{ flex: 1 }}>
+              <div className="stat-value">{card.value}</div>
+              <div className="stat-label">{card.label}</div>
+            </div>
+            <div style={{
+              fontSize: '0.7rem', color: 'var(--accent)',
+              fontWeight: 600, letterSpacing: '0.03em',
+              alignSelf: 'flex-end',
+            }}>
+              {card.hint} →
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon green"><UserCheck size={20} /></div>
-          <div>
-            <div className="stat-value">{headline.checked_in_now}</div>
-            <div className="stat-label">Checked In Now</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon red"><AlertTriangle size={20} /></div>
-          <div>
-            <div className="stat-value">{headline.no_shows_this_week}</div>
-            <div className="stat-label">No-Shows This Week</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon yellow"><CheckCircle size={20} /></div>
-          <div>
-            <div className="stat-value">{headline.confirmed_upcoming}</div>
-            <div className="stat-label">Confirmed Upcoming</div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Charts Row */}
@@ -88,7 +231,7 @@ export default function DashboardPage() {
               <Tooltip
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8 }}
                 labelStyle={{ color: 'var(--text-primary)' }}
-                formatter={(v, name) => [`${v}%`, 'No-Show Rate']}
+                formatter={(v) => [`${v}%`, 'No-Show Rate']}
               />
               <Line
                 type="monotone"
@@ -189,6 +332,14 @@ export default function DashboardPage() {
           </table>
         </div>
       </div>
+
+      {/* Stat Drill-Down Modal */}
+      {activeStatKey && (
+        <StatDetailModal
+          statKey={activeStatKey}
+          onClose={() => setActiveStatKey(null)}
+        />
+      )}
     </div>
   )
 }

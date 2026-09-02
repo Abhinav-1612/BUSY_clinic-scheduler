@@ -385,6 +385,16 @@ p  { color: var(--text-secondary); }
   transform: translateY(-2px);
 }
 
+.stat-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(79, 110, 247, 0.18);
+}
+
+.stat-card-clickable:active {
+  transform: translateY(-1px);
+}
+
 .stat-icon {
   width: 44px; height: 44px;
   border-radius: var(--radius);
