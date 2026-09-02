@@ -27,6 +27,154 @@ const STATUS_LABELS = {
   cancelled:  'Cancel',
 }
 
+// ── Create Appointment Modal ──────────────────────────────────────────────────
+function CreateAppointmentModal({ onClose }) {
+  const qc = useQueryClient()
+  const [step, setStep] = useState(1)  // 1=pick slot, 2=patient details
+  const [providerId, setProviderId] = useState('')
+  const [slotDate, setSlotDate] = useState('')
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [form, setForm] = useState({ patient_name: '', patient_email: '', patient_phone: '' })
+
+  const { data: providers } = useQuery({
+    queryKey: ['providers'],
+    queryFn: () => api.get('/api/providers/').then(r => r.data),
+  })
+
+  const { data: slots } = useQuery({
+    queryKey: ['slots-available', providerId, slotDate],
+    queryFn: () => api.get('/api/slots/', {
+      params: { provider_id: providerId, slot_date: slotDate, include_archived: false }
+    }).then(r => r.data.filter(s => !s.is_booked)),
+    enabled: !!providerId && !!slotDate,
+  })
+
+  const mutation = useMutation({
+    mutationFn: (body) => api.post('/api/appointments/', body).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries(['appointments'])
+      qc.invalidateQueries(['slots'])
+      toast.success('Appointment booked successfully!')
+      onClose()
+    },
+    onError: (err) => toast.error(err.response?.data?.detail || 'Failed to book appointment'),
+  })
+
+  function handleBook() {
+    if (!selectedSlot) { toast.error('Please select a time slot'); return }
+    if (!form.patient_name.trim()) { toast.error('Patient name is required'); return }
+    if (!form.patient_email.trim()) { toast.error('Patient email is required'); return }
+    mutation.mutate({ slot_id: selectedSlot.id, ...form })
+  }
+
+  // Format time nicely
+  function fmt(t) {
+    if (!t) return ''
+    const [h, m] = t.split(':')
+    const hr = parseInt(h)
+    return `${hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? 'PM' : 'AM'}`
+  }
+
+  return (
+    <Modal title="Book New Appointment" onClose={onClose} size="modal-lg">
+      <div className="modal-body">
+
+        {/* Step 1 — Choose slot */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: 14, fontSize: '0.9rem' }}>
+            Step 1: Select an available slot
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Provider</label>
+              <select className="form-control" value={providerId}
+                onChange={e => { setProviderId(e.target.value); setSelectedSlot(null) }} required>
+                <option value="">Select a doctor…</option>
+                {providers?.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Date</label>
+              <input type="date" className="form-control" value={slotDate}
+                onChange={e => { setSlotDate(e.target.value); setSelectedSlot(null) }}
+                min={new Date().toISOString().split('T')[0]} />
+            </div>
+          </div>
+
+          {providerId && slotDate && (
+            slots?.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                No available slots for this doctor on this date.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {slots?.map(s => (
+                  <button
+                    key={s.id}
+                    className={`btn btn-sm ${selectedSlot?.id === s.id ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setSelectedSlot(s)}
+                    type="button"
+                  >
+                    {fmt(s.start_time)} ({s.duration_minutes} min)
+                  </button>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+
+        <hr className="divider" />
+
+        {/* Step 2 — Patient details */}
+        <div>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: 14, fontSize: '0.9rem' }}>
+            Step 2: Patient details
+          </div>
+          <div className="form-group">
+            <label className="form-label">Full Name *</label>
+            <input className="form-control" placeholder="e.g. John Smith"
+              value={form.patient_name} onChange={e => setForm(f => ({ ...f, patient_name: e.target.value }))} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="form-group">
+              <label className="form-label">Email *</label>
+              <input type="email" className="form-control" placeholder="patient@example.com"
+                value={form.patient_email} onChange={e => setForm(f => ({ ...f, patient_email: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone (optional)</label>
+              <input className="form-control" placeholder="555-0100"
+                value={form.patient_phone} onChange={e => setForm(f => ({ ...f, patient_phone: e.target.value }))} />
+            </div>
+          </div>
+        </div>
+
+        {/* Summary */}
+        {selectedSlot && (
+          <div style={{ background: 'var(--bg-base)', border: '1px solid var(--accent)', borderRadius: 8, padding: 12, marginTop: 4 }}>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 2 }}>Booking summary</div>
+            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              {providers?.find(p => p.id === parseInt(providerId))?.display_name} · {slotDate} at {fmt(selectedSlot.start_time)} ({selectedSlot.duration_minutes} min)
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="modal-footer">
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        <button
+          className="btn btn-primary"
+          onClick={handleBook}
+          disabled={mutation.isPending || !selectedSlot}
+          id="book-appointment-submit"
+        >
+          {mutation.isPending ? 'Booking…' : 'Book Appointment'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
 // ── Appointment Detail Modal ──────────────────────────────────────────────────
 function AppointmentModal({ appointmentId, onClose }) {
   const { isFrontDesk, user } = useAuth()
@@ -529,6 +677,9 @@ export default function AppointmentsPage() {
 
       {/* Appointment Detail Modal */}
       {selectedId && <AppointmentModal appointmentId={selectedId} onClose={() => setSelectedId(null)} />}
+
+      {/* Create Appointment Modal */}
+      {showCreate && <CreateAppointmentModal onClose={() => setShowCreate(false)} />}
     </div>
   )
 }

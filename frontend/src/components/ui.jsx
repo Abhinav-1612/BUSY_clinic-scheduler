@@ -75,7 +75,9 @@ export function formatTime(timeStr) {
 
 export function formatDateTime(isoStr) {
   if (!isoStr) return '—'
-  const d = new Date(isoStr)
+  // Ensure the string is parsed as UTC (backend returns naive ISO without Z)
+  const utcStr = isoStr.endsWith('Z') ? isoStr : isoStr + 'Z'
+  const d = new Date(utcStr)
   return d.toLocaleString('en-US', {
     month: 'short', day: 'numeric',
     hour: 'numeric', minute: '2-digit', hour12: true,
