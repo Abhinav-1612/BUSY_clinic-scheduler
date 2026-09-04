@@ -80,7 +80,7 @@ function CreateAppointmentModal({ onClose }) {
               <label className="form-label">Date</label>
               <input type="date" className="form-control" value={slotDate}
                 onChange={e => { setSlotDate(e.target.value); setSelectedSlot(null) }}
-                min={new Date().toISOString().split('T')[0]} />
+                min={(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()} />
             </div>
           </div>
 
@@ -169,10 +169,10 @@ export default function AppointmentsPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [filterProvider, setFilterProvider] = useState('')
   const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo]     = useState('')
-  const [sortBy, setSortBy]     = useState('date')
+  const [dateTo, setDateTo] = useState('')
+  const [sortBy, setSortBy] = useState('date')
   const [sortOrder, setSortOrder] = useState('asc')
-  const [page, setPage]         = useState(1)
+  const [page, setPage] = useState(1)
 
   // Server-side filtered query
   const params = {
@@ -180,11 +180,11 @@ export default function AppointmentsPage() {
     page_size: 20,
     sort_by: sortBy,
     sort_order: sortOrder,
-    ...(patientName   && { patient_name: patientName }),
-    ...(filterStatus  && { status: filterStatus }),
+    ...(patientName && { patient_name: patientName }),
+    ...(filterStatus && { status: filterStatus }),
     ...(filterProvider && { provider_id: filterProvider }),
     ...(dateFrom && { date_from: dateFrom }),
-    ...(dateTo   && { date_to: dateTo }),
+    ...(dateTo && { date_to: dateTo }),
   }
 
   const { data, isLoading } = useQuery({
@@ -239,7 +239,7 @@ export default function AppointmentsPage() {
         <div className="filter-bar">
           <div className="search-box" style={{ flex: 2 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
             <input
               placeholder="Search patient name…"
@@ -250,7 +250,7 @@ export default function AppointmentsPage() {
 
           <select className="form-control" style={{ width: 140 }} value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1) }}>
             <option value="">All statuses</option>
-            {['requested','confirmed','checked_in','completed','no_show','cancelled'].map(s => (
+            {['requested', 'confirmed', 'checked_in', 'completed', 'no_show', 'cancelled'].map(s => (
               <option key={s} value={s}>{s.replace('_', ' ')}</option>
             ))}
           </select>
@@ -263,7 +263,7 @@ export default function AppointmentsPage() {
           )}
 
           <input type="date" className="form-control" style={{ width: 140 }} value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1) }} placeholder="From" />
-          <input type="date" className="form-control" style={{ width: 140 }} value={dateTo}   onChange={e => { setDateTo(e.target.value);   setPage(1) }} placeholder="To" />
+          <input type="date" className="form-control" style={{ width: 140 }} value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1) }} placeholder="To" />
 
           <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Clear</button>
         </div>

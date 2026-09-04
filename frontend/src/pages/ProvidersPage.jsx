@@ -13,10 +13,12 @@ export default function ProvidersPage() {
   if (!providers?.length) return <EmptyState title="No providers found" />
 
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1 className="page-title">Providers</h1>
-      </header>
+    <div className="page-body">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Providers</h1>
+        </div>
+      </div>
 
       <div className="card">
         <div className="table-responsive">

@@ -409,14 +409,23 @@ def get_appointment_history(
 def export_day_csv(
     provider_id: Optional[int] = None,
     export_date: date = Query(...),
+    token: Optional[str] = Query(None),
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_front_desk),
 ):
+    from app.auth import decode_token
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing token in query parameter")
+    try:
+        payload = decode_token(token)
+        if payload.get("role") != UserRole.front_desk.value:
+            raise HTTPException(status_code=403, detail="Front desk only")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     """Export a single day's schedule as a CSV file."""
     query = (
-        select(Appointment, AppointmentSlot, Provider)
-        .join(AppointmentSlot, Appointment.slot_id == AppointmentSlot.id)
+        select(AppointmentSlot, Provider, Appointment)
         .join(Provider, AppointmentSlot.provider_id == Provider.id)
+        .join(Appointment, Appointment.slot_id == AppointmentSlot.id, isouter=True)
         .where(AppointmentSlot.slot_date == export_date)
         .order_by(AppointmentSlot.start_time)
     )
@@ -431,16 +440,16 @@ def export_day_csv(
         "Time", "Duration (min)", "Provider", "Patient Name",
         "Patient Email", "Patient Phone", "Status", "Cancel Reason"
     ])
-    for appt, slot, prov in rows:
+    for slot, prov, appt in rows:
         writer.writerow([
             str(slot.start_time),
             slot.duration_minutes,
             prov.display_name,
-            appt.patient_name,
-            appt.patient_email,
-            appt.patient_phone or "",
-            appt.status.value,
-            appt.cancel_reason or "",
+            appt.patient_name if appt else "",
+            appt.patient_email if appt else "",
+            appt.patient_phone if appt else "",
+            appt.status.value if appt else "Available",
+            appt.cancel_reason if appt else "",
         ])
 
     output.seek(0)
