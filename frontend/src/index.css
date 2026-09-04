@@ -863,31 +863,156 @@ tbody tr:hover { background: var(--bg-card-hover); }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-base);
+  background-image: url('./assets/clinic_split_bg.jpg');
+  background-size: cover;
+  background-position: center;
   position: relative;
-  overflow: hidden;
+  padding: 20px;
 }
 
-.login-glow {
+.login-page::before {
+  content: '';
   position: absolute;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(79, 110, 247, 0.15) 0%, transparent 70%);
-  pointer-events: none;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(var(--bg-base-rgb), 0.6); 
+  /* Fallback overlay to ensure contrast based on theme */
 }
 
-.login-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 40px;
+.login-split-card {
+  display: flex;
   width: 100%;
-  max-width: 420px;
-  box-shadow: var(--shadow-modal);
+  max-width: 1100px;
+  min-height: 650px;
+  background: var(--bg-card);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
   position: relative;
   z-index: 1;
+  border: 1px solid var(--border);
+}
+
+.login-left {
+  flex: 1;
+  padding: 60px 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.login-right {
+  flex: 1.1;
+  background-image: url('./assets/clinic_split_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-right-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 58, 138, 0.4) 100%);
+}
+
+.login-right-content {
+  position: relative;
+  z-index: 1;
+  color: #ffffff; /* Always white on the image overlay */
+}
+
+.login-right-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.login-right-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  line-height: 1.5;
+  margin-bottom: 48px;
+  max-width: 80%;
+}
+
+.login-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.login-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.login-feature-icon {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+}
+
+@media (max-width: 992px) {
+  .login-split-card {
+    flex-direction: column;
+  }
+  .login-right {
+    display: none;
+  }
+  .login-left {
+    padding: 40px 30px;
+  }
+}
+
+.login-input {
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.login-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: var(--bg-card);
+}
+
+.login-btn {
+  transition: all 0.2s ease;
+  border-radius: 12px;
+}
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.demo-btn {
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+.demo-btn:hover {
+  background: var(--bg-base);
+  border-color: var(--text-muted) !important;
+  color: var(--text-primary);
 }
 
 .login-logo {
