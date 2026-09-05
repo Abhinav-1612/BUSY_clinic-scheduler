@@ -2,7 +2,8 @@
 
 ## Live Application
 
-> **URL:** _(to be filled after deployment — see Session 4)_
+> **Frontend URL:** https://busy-clinic-scheduler.vercel.app/
+> **Backend API URL:** https://busy-clinic-scheduler.onrender.com
 
 > **Note on cold starts:** The API is hosted on Render's free tier, which spins down after 15 minutes of inactivity. The first request after a period of inactivity may take 30–60 seconds to respond. Subsequent requests are fast. If the login page appears stuck, wait ~60 seconds and try again.
 
@@ -68,7 +69,9 @@ The database is pre-populated with:
 
 ## What I Tried for Hosting / Where It Broke
 
-_(Fill in if deployment did not complete — describe what was attempted and where it failed.)_
+The deployment ultimately completed successfully, but I encountered and fixed two specific issues along the way:
+1. **Render Python Crash:** Initially, the FastAPI backend failed to build on Render with an `ImportError` for `psycopg2`. Render was defaulting to Python 3.14 which was incompatible with the `psycopg2-binary` C-extension. I fixed this by adding a `render.yaml` file to explicitly pin `PYTHON_VERSION: 3.12.3`.
+2. **Vercel CSS Minifier Bug:** The React frontend deployed successfully, but the blurred background on the login page failed to render. Vercel's CSS minification process broke the `rgba(var(--bg-base-rgb), 0.6)` syntax on the `backdrop-filter`. I fixed this by replacing the CSS variable with explicit `rgba` hex values in `index.css`.
 
 ---
 
