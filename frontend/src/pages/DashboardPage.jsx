@@ -104,8 +104,10 @@ function StatDetailModal({ statKey, onClose }) {
   const [selectedApptId, setSelectedApptId] = useState(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['stat-detail', statKey],
+    queryKey: ['stat-detail', statKey, params],
     queryFn: () => api.get('/api/appointments/', { params }).then(r => r.data),
+    refetchOnMount: true,
+    staleTime: 0,
   })
 
   const appointments = data?.data || []
@@ -268,7 +270,8 @@ export default function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api.get('/api/dashboard/').then(r => r.data),
-    refetchInterval: 30000,
+    refetchInterval: 8000,         // refresh every 8 seconds
+    refetchOnWindowFocus: true,    // also refresh when switching back to tab
   })
 
   if (isLoading) return <div className="page-body"><Spinner /></div>
@@ -347,7 +350,14 @@ export default function DashboardPage() {
               <div className="dtw-next-icon"><Calendar size={22} /></div>
               <div className="dtw-next-content">
                 <div className="dtw-next-label">Next Appointment</div>
-                <div className="dtw-next-time">{data.next_appointment.time} — {data.next_appointment.patient_name}</div>
+                <div className="dtw-next-time">
+                  {data.next_appointment.date !== localDateStr() && (
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', marginRight: 6 }}>
+                      {new Date(data.next_appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
+                  {data.next_appointment.time} — {data.next_appointment.patient_name}
+                </div>
                 <div className="dtw-next-doc">{data.next_appointment.provider}</div>
               </div>
             </div>

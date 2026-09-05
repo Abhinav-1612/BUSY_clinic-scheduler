@@ -18,6 +18,7 @@ function CreateSlotModal({ onClose }) {
     mutationFn: (body) => api.post('/api/slots/', body).then(r => r.data),
     onSuccess: () => {
       qc.invalidateQueries(['slots'])
+      qc.invalidateQueries(['dashboard'])  // instant dashboard refresh
       toast.success('Slot created')
       onClose()
     },

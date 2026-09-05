@@ -91,6 +91,7 @@ export default function AppointmentModal({ appointmentId, onClose }) {
       qc.invalidateQueries(['appointment', appointmentId])
       qc.invalidateQueries(['appointment-history', appointmentId])
       qc.invalidateQueries(['stat-detail'])
+      qc.invalidateQueries(['dashboard'])  // refresh provider chart
       toast.success('Appointment reassigned')
       setShowReassign(false)
     },

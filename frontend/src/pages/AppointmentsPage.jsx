@@ -37,6 +37,8 @@ function CreateAppointmentModal({ onClose }) {
     onSuccess: () => {
       qc.invalidateQueries(['appointments'])
       qc.invalidateQueries(['slots'])
+      qc.invalidateQueries(['dashboard'])  // instant dashboard refresh
+      qc.invalidateQueries(['alerts-count'])
       toast.success('Appointment booked successfully!')
       onClose()
     },

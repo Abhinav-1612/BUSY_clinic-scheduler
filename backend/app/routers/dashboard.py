@@ -220,20 +220,25 @@ def get_dashboard(
         })
 
     # ── 5. Next Appointment ──────────────────────────────────────────────────
-    
     from sqlmodel import or_, and_
-    
     now_time = datetime.now().time()
+
     next_appt_record = session.exec(
         select(AppointmentSlot, Provider, Appointment)
         .join(Provider, AppointmentSlot.provider_id == Provider.id)
         .join(Appointment, Appointment.slot_id == AppointmentSlot.id)
         .where(
+            # Today's appointments AFTER current time, OR any future date
             or_(
                 and_(AppointmentSlot.slot_date == today, AppointmentSlot.start_time >= now_time),
                 AppointmentSlot.slot_date > today
             ),
-            Appointment.status.in_([AppointmentStatus.confirmed, AppointmentStatus.requested])
+            # Active statuses only — not completed, cancelled or no-show
+            Appointment.status.in_([
+                AppointmentStatus.requested,
+                AppointmentStatus.confirmed,
+                AppointmentStatus.checked_in,
+            ])
         )
         .order_by(AppointmentSlot.slot_date, AppointmentSlot.start_time)
         .limit(1)
