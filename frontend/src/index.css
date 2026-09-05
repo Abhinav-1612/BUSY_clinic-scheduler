@@ -768,8 +768,8 @@ tbody tr:hover { background: var(--bg-card-hover); }
   inset: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(var(--bg-base-rgb), 0.6); 
-  /* Fallback overlay to ensure contrast based on theme */
+  /* Use explicit rgba to avoid Vercel CSS minifier bug while enforcing a premium dark tint */
+  background: rgba(15, 23, 42, 0.6); 
 }
 
 .login-split-card {
