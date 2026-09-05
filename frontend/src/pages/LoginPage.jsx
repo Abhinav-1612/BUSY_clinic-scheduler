@@ -49,7 +49,7 @@ export default function LoginPage() {
               <HeartPulse size={24} />
             </div>
             <div>
-              <div className="login-logo-text" style={{ fontSize: '1.5rem', letterSpacing: '-0.5px' }}>BUSY</div>
+              <div className="login-logo-text" style={{ fontSize: '1.5rem', letterSpacing: '-0.5px' }}>SyncCare</div>
               <div className="login-logo-sub" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>Clinic Scheduler</div>
             </div>
             <div style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right', lineHeight: 1.5, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
