@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { Spinner, EmptyState, Modal, StatusBadge, formatDate, formatTime } from '../components/ui'
+import { Spinner, EmptyState, Modal, StatusBadge, formatDate, formatTime, TimePicker } from '../components/ui'
 import { Plus, Archive, RotateCcw, Clock, Download } from 'lucide-react'
 
 function CreateSlotModal({ onClose }) {
@@ -48,7 +48,11 @@ function CreateSlotModal({ onClose }) {
             </div>
             <div className="form-group">
               <label className="form-label">Start Time</label>
-              <input type="time" className="form-control" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} required />
+              <TimePicker
+                value={form.start_time}
+                onChange={val => setForm(f => ({ ...f, start_time: val }))}
+                required
+              />
             </div>
           </div>
           <div className="form-group">

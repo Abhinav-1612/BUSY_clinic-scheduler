@@ -417,8 +417,22 @@ def export_day_csv(
         raise HTTPException(status_code=401, detail="Missing token in query parameter")
     try:
         payload = decode_token(token)
-        if payload.get("role") != UserRole.front_desk.value:
-            raise HTTPException(status_code=403, detail="Front desk only")
+        user_role = payload.get("role")
+        user_id = int(payload.get("sub"))
+        
+        if user_role not in [UserRole.front_desk.value, UserRole.provider.value]:
+            raise HTTPException(status_code=403, detail="Unauthorized role")
+            
+        if user_role == UserRole.provider.value:
+            my_provider = session.exec(
+                select(Provider).where(Provider.user_id == user_id)
+            ).first()
+            if not my_provider:
+                raise HTTPException(status_code=403, detail="Provider profile not found")
+            provider_id = my_provider.id  # Force restrict to their own slots
+            
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=401, detail="Unauthorized")
     """Export a single day's schedule as a CSV file."""

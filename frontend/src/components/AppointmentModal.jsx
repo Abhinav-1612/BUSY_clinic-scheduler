@@ -55,7 +55,6 @@ export default function AppointmentModal({ appointmentId, onClose }) {
   const { data: providers } = useQuery({
     queryKey: ['providers'],
     queryFn: () => api.get('/api/providers/').then(r => r.data),
-    enabled: isFrontDesk,
   })
 
   const statusMutation = useMutation({
@@ -248,18 +247,16 @@ export default function AppointmentModal({ appointmentId, onClose }) {
             {supportingProviders.map(m => (
               <span key={m.provider_id} className="badge badge-provider" style={{ alignItems: 'center', gap: 6 }}>
                 {m.provider_name}
-                {isFrontDesk && (
-                  <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, lineHeight: 1, marginLeft: 2 }}
-                    onClick={() => removeSupportMutation.mutate(m.provider_id)}
-                  >
-                    <X size={10} />
-                  </button>
-                )}
+                <button
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, lineHeight: 1, marginLeft: 2 }}
+                  onClick={() => removeSupportMutation.mutate(m.provider_id)}
+                >
+                  <X size={10} />
+                </button>
               </span>
             ))}
           </div>
-          {isFrontDesk && availableToAdd.length > 0 && (
+          {availableToAdd.length > 0 && (
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               <select className="form-control" value={supportPid} onChange={e => setSupportPid(e.target.value)} style={{ maxWidth: 200 }}>
                 <option value="">Add supporting provider…</option>

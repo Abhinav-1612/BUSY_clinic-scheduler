@@ -93,3 +93,75 @@ export function historyDotColor(eventType, newValue) {
   if (newValue === 'completed') return 'green'
   return ''
 }
+
+// ── Time Picker ───────────────────────────────────────────────────────────────
+// value: "HH:MM" (24-hour, e.g. "14:30")
+// onChange: (value: "HH:MM") => void
+export function TimePicker({ value, onChange, required }) {
+  // Parse current 24h value
+  const [h24, m] = (value || '09:00').split(':').map(Number)
+  const isPM  = h24 >= 12
+  const hour12 = h24 % 12 || 12
+  const minute = isNaN(m) ? 0 : m
+
+  const HOURS   = Array.from({ length: 12 }, (_, i) => i + 1)   // 1–12
+  const MINUTES = [0, 15, 30, 45]
+
+  function emit(newHour12, newMin, newPM) {
+    const h24out = newPM ? (newHour12 === 12 ? 12 : newHour12 + 12)
+                         : (newHour12 === 12 ? 0  : newHour12)
+    onChange(`${String(h24out).padStart(2,'0')}:${String(newMin).padStart(2,'0')}`)
+  }
+
+  const selectStyle = {
+    padding: '8px 10px',
+    borderRadius: 8,
+    border: '1px solid var(--border)',
+    background: 'var(--bg-card)',
+    color: 'var(--text-primary)',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    outline: 'none',
+    flex: 1,
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      {/* Hour */}
+      <select
+        style={selectStyle}
+        value={hour12}
+        onChange={e => emit(parseInt(e.target.value), minute, isPM)}
+        required={required}
+      >
+        {HOURS.map(h => (
+          <option key={h} value={h}>{String(h).padStart(2,'0')}</option>
+        ))}
+      </select>
+
+      <span style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '1.1rem' }}>:</span>
+
+      {/* Minute */}
+      <select
+        style={selectStyle}
+        value={minute}
+        onChange={e => emit(hour12, parseInt(e.target.value), isPM)}
+      >
+        {MINUTES.map(min => (
+          <option key={min} value={min}>{String(min).padStart(2,'0')}</option>
+        ))}
+      </select>
+
+      {/* AM / PM */}
+      <select
+        style={{ ...selectStyle, flex: '0 0 70px', textAlign: 'center' }}
+        value={isPM ? 'PM' : 'AM'}
+        onChange={e => emit(hour12, minute, e.target.value === 'PM')}
+      >
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+  )
+}

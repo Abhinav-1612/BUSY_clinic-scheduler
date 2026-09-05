@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import api from '../api/client'
-import { Spinner, EmptyState, formatDate, formatTime } from '../components/ui'
+import { Spinner, EmptyState, formatDate, formatTime, TimePicker } from '../components/ui'
 import { Zap, CheckCircle, AlertCircle, Layers } from 'lucide-react'
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
@@ -105,12 +105,12 @@ export default function BulkPage() {
                 >
                   {DAYS.map((d, idx) => <option key={idx} value={idx}>{d}</option>)}
                 </select>
-                <input
-                  type="time"
-                  className="form-control"
-                  value={block.start_time}
-                  onChange={e => updateBlock(i, 'start_time', e.target.value)}
-                />
+                <div style={{ flex: 1 }}>
+                  <TimePicker
+                    value={block.start_time}
+                    onChange={val => updateBlock(i, 'start_time', val)}
+                  />
+                </div>
                 <select
                   className="form-control"
                   value={block.duration_minutes}
