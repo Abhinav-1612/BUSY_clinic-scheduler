@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import api from '../api/client'
 import { Spinner, EmptyState, formatDate, formatTime } from '../components/ui'
-import { Zap, CheckCircle, AlertCircle } from 'lucide-react'
+import { Zap, CheckCircle, AlertCircle, Layers } from 'lucide-react'
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
@@ -55,18 +55,21 @@ export default function BulkPage() {
   }
 
   return (
-    <div className="page-body">
-      <div className="page-header">
+    <div className="page-body animated-page">
+      <div className="premium-page-header">
+        <div className="premium-page-icon-wrapper" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)' }}>
+          <Layers size={28} />
+        </div>
         <div>
-          <h1 className="page-title">Bulk Slot Generator</h1>
-          <p className="page-subtitle">Generate recurring weekly availability slots across a date range</p>
+          <h1 className="premium-page-title">Bulk Slot Generator</h1>
+          <p className="premium-page-subtitle">Generate recurring weekly availability slots across a date range</p>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
         {/* Form */}
-        <form onSubmit={handleSubmit} className="card">
-          <h3 style={{ marginBottom: 18 }}>Configure Pattern</h3>
+        <form onSubmit={handleSubmit} className="premium-card">
+          <h3 style={{ marginBottom: 18, color: 'var(--text-primary)' }}>Configure Pattern</h3>
 
           <div className="form-group">
             <label className="form-label">Provider</label>
@@ -128,20 +131,14 @@ export default function BulkPage() {
             ))}
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-            style={{ justifyContent: 'center', padding: 11 }}
-            disabled={mutation.isPending}
-            id="generate-slots-btn"
-          >
-            <Zap size={15} />
+          <button type="submit" className="btn btn-primary w-full hover-lift" disabled={mutation.isPending} style={{ height: 44, fontSize: '1rem' }}>
+            <Zap size={16} style={{ marginRight: 6 }} /> 
             {mutation.isPending ? 'Generating…' : 'Generate Slots'}
           </button>
         </form>
 
         {/* Results */}
-        <div>
+        <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', minHeight: 400 }}>
           {!result && !mutation.isPending && (
             <div className="card">
               <EmptyState

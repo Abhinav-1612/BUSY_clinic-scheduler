@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import api from '../api/client'
 import { Spinner, EmptyState, formatDate, formatTime } from '../components/ui'
-import { Bell, BellOff, Clock } from 'lucide-react'
+import { Bell, BellOff, Clock, AlertCircle } from 'lucide-react'
 
 export default function AlertsPage() {
   const qc = useQueryClient()
@@ -28,16 +28,19 @@ export default function AlertsPage() {
   const dismissed = alerts.filter(a => a.is_dismissed)
 
   return (
-    <div className="page-body">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Unconfirmed Alerts</h1>
-          <p className="page-subtitle">
+    <div className="page-body animated-page">
+      <div className="premium-page-header">
+        <div className="premium-page-icon-wrapper" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)' }}>
+          <AlertCircle size={28} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <h1 className="premium-page-title">Unconfirmed Alerts</h1>
+          <p className="premium-page-subtitle">
             Appointments still in Requested status within 24 hours of their scheduled time.
             Dismissed alerts reappear automatically if still unconfirmed within 1 hour.
           </p>
         </div>
-        <button className="btn btn-ghost" onClick={() => refetch()} id="refresh-alerts-btn">
+        <button className="btn btn-ghost hover-lift" onClick={() => refetch()} id="refresh-alerts-btn" style={{ height: 44, padding: '0 24px', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           Refresh
         </button>
       </div>
@@ -70,7 +73,7 @@ export default function AlertsPage() {
           </div>
 
           {/* Active alerts */}
-          <div className="card" style={{ marginBottom: 16 }}>
+      <div className="premium-card" style={{ marginBottom: 24 }}>
             <div className="card-header">
               <h3 className="card-title">Active Alerts</h3>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>

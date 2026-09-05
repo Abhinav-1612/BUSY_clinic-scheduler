@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, EmptyState, Modal, StatusBadge, formatDate, formatTime } from '../components/ui'
-import { Plus, Archive, RotateCcw } from 'lucide-react'
+import { Plus, Archive, RotateCcw, Clock, Download } from 'lucide-react'
 
 function CreateSlotModal({ onClose }) {
   const qc = useQueryClient()
@@ -115,26 +115,29 @@ export default function SlotsPage() {
   }
 
   return (
-    <div className="page-body">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Availability Slots</h1>
-          <p className="page-subtitle">{slots?.length || 0} slots</p>
+    <div className="page-body animated-page">
+      <div className="premium-page-header">
+        <div className="premium-page-icon-wrapper" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)' }}>
+          <Clock size={28} />
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={handleExport} id="export-csv-btn">
-            ↓ Export CSV
+        <div style={{ flex: 1 }}>
+          <h1 className="premium-page-title">Availability Slots</h1>
+          <p className="premium-page-subtitle">{slots?.length || 0} slots</p>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-ghost hover-lift" onClick={handleExport} id="export-csv-btn" style={{ height: 44, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <Download size={16} style={{ marginRight: 6 }} /> Export CSV
           </button>
           {isFrontDesk && (
-            <button className="btn btn-primary" onClick={() => setShowCreate(true)} id="create-slot-btn">
-              <Plus size={15} /> New Slot
+            <button className="btn btn-primary hover-lift" onClick={() => setShowCreate(true)} id="create-slot-btn" style={{ height: 44, padding: '0 24px' }}>
+              <Plus size={18} style={{ marginRight: 6 }} /> New Slot
             </button>
           )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card" style={{ padding: '14px 20px', marginBottom: 16 }}>
+      <div className="premium-card" style={{ padding: '16px 20px', marginBottom: 24 }}>
         <div className="filter-bar">
           <input type="date" className="form-control" style={{ width: 160 }} value={filterDate} onChange={e => setFilterDate(e.target.value)} />
           {isFrontDesk && (
@@ -151,8 +154,8 @@ export default function SlotsPage() {
       </div>
 
       {isLoading ? <Spinner /> : (
-        <div className="table-wrapper">
-          <table>
+        <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table className="table" style={{ margin: 0 }}>
             <thead>
               <tr>
                 <th>Date</th>

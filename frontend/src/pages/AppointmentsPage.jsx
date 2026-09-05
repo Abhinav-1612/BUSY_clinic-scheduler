@@ -7,7 +7,7 @@ import {
   StatusBadge, Spinner, EmptyState, Modal,
   formatDate, formatTime
 } from '../components/ui'
-import { Plus } from 'lucide-react'
+import { Plus, CalendarCheck, Filter } from 'lucide-react'
 import AppointmentModal from '../components/AppointmentModal'
 
 // ── Create Appointment Modal ──────────────────────────────────────────────────
@@ -221,23 +221,26 @@ export default function AppointmentsPage() {
   const totalPages = data?.total_pages || 1
 
   return (
-    <div className="page-body">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Appointments</h1>
-          <p className="page-subtitle">
+    <div className="page-body animated-page">
+      <div className="premium-page-header">
+        <div className="premium-page-icon-wrapper">
+          <CalendarCheck size={28} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <h1 className="premium-page-title">Appointments</h1>
+          <p className="premium-page-subtitle">
             {total} appointment{total !== 1 ? 's' : ''} found
           </p>
         </div>
         {isFrontDesk && (
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)} id="new-appointment-btn">
-            <Plus size={15} /> New Appointment
+          <button className="btn btn-primary hover-lift" onClick={() => setShowCreate(true)} id="new-appointment-btn" style={{ padding: '0 24px', height: 44 }}>
+            <Plus size={18} style={{ marginRight: 6 }} /> New Appointment
           </button>
         )}
       </div>
 
       {/* Filter Bar */}
-      <div className="card" style={{ padding: '16px 20px', marginBottom: 16 }}>
+      <div className="premium-card" style={{ padding: '16px 20px', marginBottom: 24 }}>
         <div className="filter-bar">
           <div className="search-box" style={{ flex: 2 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
