@@ -12,7 +12,7 @@ function CreateSlotModal({ onClose }) {
     queryKey: ['providers'],
     queryFn: () => api.get('/api/providers/').then(r => r.data),
   })
-  const [form, setForm] = useState({ provider_id: '', slot_date: '', start_time: '', duration_minutes: 30 })
+  const [form, setForm] = useState({ provider_id: '', slot_date: '', start_time: '09:00', duration_minutes: 30 })
 
   const mutation = useMutation({
     mutationFn: (body) => api.post('/api/slots/', body).then(r => r.data),
@@ -22,7 +22,14 @@ function CreateSlotModal({ onClose }) {
       toast.success('Slot created')
       onClose()
     },
-    onError: (err) => toast.error(err.response?.data?.detail || 'Failed to create slot'),
+    onError: (err) => {
+      const detail = err.response?.data?.detail
+      if (Array.isArray(detail)) {
+        toast.error(detail[0].msg || 'Invalid form data')
+      } else {
+        toast.error(detail || 'Failed to create slot')
+      }
+    },
   })
 
   function handleSubmit(e) {
